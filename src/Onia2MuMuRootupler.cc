@@ -195,7 +195,6 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
                if ( foundit == 3 ) break;               
             }
             if ( foundit == 3 ) {
-               //gen_dimuon_p4.SetPtEtaPhiM(j1->pt(),j1->eta(),j1->phi(),j1->mass());
                gen_dimuon_p4 = gen_muonM_p4 + gen_muonP_p4;   // this should take into account FSR
                break;
             } else {
@@ -210,10 +209,11 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
      if ( ! dimuon_pdgId ) std::cout << "Onia2MuMuRootupler: does not found the given decay " << run << "," << event << std::endl;
   }  // end if isMC
 
-  bool bestCandidateOnly_ = false;
+  bool bestCandidateOnly_ = true; // we really want just the best!
 
   if ( dimuons.isValid() && dimuons->size() > 0) {
      for (pat::CompositeCandidateCollection::const_iterator  dimuonCand = dimuons->begin(); dimuonCand!= dimuons->end(); ++dimuonCand) {
+        if ( dimuonCand->mass()<2. || dimuonCand->mass()>15.) continue;
         dimuon_p4.SetPtEtaPhiM(dimuonCand->pt(), dimuonCand->eta(), dimuonCand->phi(), dimuonCand->mass());
         reco::Candidate::LorentzVector vP = dimuonCand->daughter("muon1")->p4();
         reco::Candidate::LorentzVector vM = dimuonCand->daughter("muon2")->p4();
@@ -236,16 +236,11 @@ void Onia2MuMuRootupler::analyze(const edm::Event & iEvent, const edm::EventSetu
   } else {
      std::cout << "Onia2MuMuRootupler: does not find a valid dimuon combination " << run << "," << event << std::endl;
   }
-  if (!irank  && dimuon_pdgId) {
-     std::cout << "Onia2MuMuRootupler: does not find a reco combination but there is an gen particle " << run << "," << event << std::endl;
-     dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     muonP_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     muonN_p4.SetPtEtaPhiM(0.,0.,0.,0.);
-     vProb=-1;
-     cosAlpha=-100;
-     ppdlPV=-100;
-     onia_tree->Fill();
-  }
+     
+  dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+  gen_dimuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+  dimuon_pdgId = 0;
+  vProb=-1;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
